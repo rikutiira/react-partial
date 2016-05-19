@@ -1,0 +1,106 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/Users/riku.tiira/.nvm/versions/node/v4.3.2/bin/node',
+1 verbose cli   '/Users/riku.tiira/.nvm/versions/node/v4.3.2/bin/npm',
+1 verbose cli   'publish' ]
+2 info using npm@2.14.12
+3 info using node@v4.3.2
+4 verbose publish [ '.' ]
+5 silly cache add args [ '.', null ]
+6 verbose cache add spec .
+7 silly cache add parsed spec Result {
+7 silly cache add   raw: '.',
+7 silly cache add   scope: null,
+7 silly cache add   name: null,
+7 silly cache add   rawSpec: '.',
+7 silly cache add   spec: '/Users/riku.tiira/Projects/react-wrappy',
+7 silly cache add   type: 'directory' }
+8 verbose addLocalDirectory /Users/riku.tiira/.npm/react-wrappy/1.0.0/package.tgz not in flight; packing
+9 verbose tar pack [ '/Users/riku.tiira/.npm/react-wrappy/1.0.0/package.tgz',
+9 verbose tar pack   '/Users/riku.tiira/Projects/react-wrappy' ]
+10 verbose tarball /Users/riku.tiira/.npm/react-wrappy/1.0.0/package.tgz
+11 verbose folder /Users/riku.tiira/Projects/react-wrappy
+12 info prepublish react-wrappy@1.0.0
+13 verbose unsafe-perm in lifecycle true
+14 verbose addLocalTarball adding from inside cache /Users/riku.tiira/.npm/react-wrappy/1.0.0/package.tgz
+15 silly cache afterAdd react-wrappy@1.0.0
+16 verbose afterAdd /Users/riku.tiira/.npm/react-wrappy/1.0.0/package/package.json not in flight; writing
+17 verbose afterAdd /Users/riku.tiira/.npm/react-wrappy/1.0.0/package/package.json written
+18 silly publish { name: 'react-wrappy',
+18 silly publish   version: '1.0.0',
+18 silly publish   description: 'Do you prefer writing stateless function components ([introduced with React 0.14](https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html#stateless-functional-components)) over class syntax but still occasionally need lifecycle methods or state?',
+18 silly publish   main: './dist/index.js',
+18 silly publish   scripts:
+18 silly publish    { start: 'budo dev.js --live -- -t [ babelify --presets [es2015 react stage-2] ]',
+18 silly publish      build: 'babel src/index.js --out-file dist/index.js',
+18 silly publish      prepublish: 'npm run build' },
+18 silly publish   repository:
+18 silly publish    { type: 'git',
+18 silly publish      url: 'ssh://git@git.theorycraft.fi:10022/rikutiira/react-functional.git' },
+18 silly publish   author: { name: 'Riku Tiira', url: 'https://github.com/rikutiira' },
+18 silly publish   license: 'MIT',
+18 silly publish   dependencies: { react: '^15.0.2', 'react-dom': '^15.0.2' },
+18 silly publish   devDependencies:
+18 silly publish    { 'babel-cli': '^6.9.0',
+18 silly publish      'babel-preset-es2015': '^6.9.0',
+18 silly publish      'babel-preset-react': '^6.5.0',
+18 silly publish      'babel-preset-stage-2': '^6.5.0',
+18 silly publish      babelify: '^7.3.0',
+18 silly publish      budo: '^8.2.2' },
+18 silly publish   peerDependencies: { react: '^0.14.0 || ^15.0.0-0' },
+18 silly publish   readme: '# React Wrappy\n\nDo you prefer writing stateless function components ([introduced with React 0.14](https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html#stateless-functional-components)) over class syntax but still occasionally need lifecycle methods or state?\n\nWrappy lets you write stateless components and wraps them in a stateful component by using lifted component methods in a functional manner. It enables you to reduce boilerplate, add functionality to existing components and write simpler code. Wrappy even makes it possible to write highly reusable container components by using a powerful composition pattern. More on that [here](https://github.com/rikutiira/react-wrappy#3-creating-reusable-containers).\n\n```js\nimport { componentDidMount, shouldComponentUpdate, combine } from \'react-wrappy\'\n\nconst Hello = (props) => <h1>Hello {props.world} {props.smiley}</h1>\n\ncombine(\n    componentDidMount((props, state, self) => {\n        setTimeout(() => self.setState({ smiley: \':(\' }), 1000)\n        setTimeout(() => self.setState({ smiley: \':)\' }), 2000)\n    }),\n    shouldComponentUpdate((props, state) => state.smiley === \':)\')\n)(Hello)\n```\n\n## Installing\n\nnpm:\n\n`npm install react-wrappy`\n\n## Why use React Wrappy?\n\n- Lightweight, just around ~10KB\n- Allows you to stick to stateless function syntax\n- Simplifies code and reduces boilerplate\n- Ships with a few useful utility functions\n\n## Supported methods\n\nWrappy supports all the specifications of React.createClass():\n\nSpecs: `getInitialState, getDefaultProps, propTypes, mixins, statics, displayName`\n\nLifecycle methods: `componentWillMount, componentDidMount, componentWillReceiveProps, shouldComponentUpdate, componentWillUpdate, componentDidUpdate, componentWillUnmount`\n\n### How component methods work\n\nEvery component method in React Wrappy follows the same pattern:\n\n```js\npropTypes(propTypesObj, [Component/componentMethod])\ncomponentDidMount(didMountF, [Component/componentMethod])\n//etc...\n```\n\n- The first argument is always the value which React expects, eg. propTypes takes an object, componentDidMount takes a function.\n    - All functions get appended with 3 arguments: `props, state, this`:<br>\n    `componentDidMount((props, state, this) => ...)`<br>\n    `shouldComponentUpdate((nextProps, nextState, props, state, this) => ...)`\n    - If `setState` is callable within the method, you can return an object instead of having to call `setState` yourself. This has many benefits as it allows Wrappy to optimize the amount of setState calls and your functions can often remain pure.\n- Second argument is optional, and when omitted a new curried function is returned which takes a single argument `Component/componentMethod`<br>\n    - If Component is given, a React component is returned.<br>\n    - If componentMethod is given, its functionality is added to the existing method(s) and a new curried function is returned which takes a single argument `Component/componentMethod`\n\n### Utility functions\n\n#### `combine(...funcs)`\n\nCombines multiple component methods without having to write nested function calls.\n\nReturns a curried function.\n\n```js\ncombine(\n    componentDidMount(f),\n    componentWillMount(f),\n    componentWillUnmount(f)\n)(Component)\n```\n\n#### `onPropChange(propsObject, [function])`\n\nonPropChange uses `componentWillReceiveProps` lifecycle method and listens to changes in props specified by the propsObject and calls the given function when prop has changed (using `!==` equality check). This helps you to reduce boilerplate by not having to check whether prop has changed or not.\n\nReturns a function following the same composition pattern as component methods.\n\n```js\nonPropChange({\n    foo: (props, state, wrapper) => {\n        return { fooDoubled: props.foo * 2 }\n    },\n    bar: (props, state, wrapper) => {\n        return { bar: state.bar.concat(props.bar) }\n    }\n}, Component)\n```\n\nNotice that if you return the new state instead of explicitly using `wrapper.setState`, `setState` is only called once even when multiple props have changed.\n\n`componentWillReceiveProps` and `onPropChange` can be used together.\n\n### `addSpecs(specificationsObject, [function])`\n\naddSpecs can be used to define component methods as an object instead of using function composition.\n\nReturns a function following the same composition pattern as component methods.\n\n```js\naddSpecs({\n    displayName: \'MyAlertingComponent\',\n    componentDidMount: () => alert(\'woosh!\')\n})(Component)\n```\n\n## Examples\n\n### 1. Simple composition\n```js\nimport { componentDidMount, componentWillUnmount } from \'react-wrappy\'\n\nconst HelloWorld = (props) => <div>Hello {props.world}</div>\n\n//second argument is omitted and partial function is returned\nconst hello = componentDidMount(() => ({ world: \'world\' }))\nconst goodbye = componentWillUnmount(() => alert(\'goodbye world\'))\n\n//this allows you to add more functionality to an already existing wrapper\nconst helloAndGoodbye = hello(goodbye)\n\n//HelloWorld is augmented with both hello\'s and goodbye\'s functionality\nexport default goodbye(HelloWorld)\n```\n\nYou can also write the above with more inline aesthetic:\n\n```js\nhello(\n    () => ({ world: \'world\' }),\n    goodbye(\n        () => alert(\'goodbye world\'),\n        HelloWorld\n    )\n)\n```\n\n### 2. Combining multiple lifecycle methods\n```js\nimport { getInitialState, componentDidMount, componentWillUnmount, combine } from \'react-wrappy\'\n\n//combine lets you get rid of deeply nested function calls when dealing with multiple methods\nconst wrapper = combine(\n    getInitialState((props) => ({ timer: props.timer || 0 })),\n    componentDidMount((props, state, wrapper) => { //props, state and this are always passed as last 3 arguments\n        wrapper.interval = setInterval(() => {\n            wrapper.setState({ timer: state.timer + 1 })\n        }, 1000)\n    }),\n    componentWillUnmount((props, state, wrapper) => clearInterval(wrapper.interval)),\n);\n\n//parent state is assigned to wrapped component\'s props\nconst Timer = (props) => <div>{props.timer}</div>\n\n//every method of Wrappy is curried, allowing you to add more lifecycle methods later on if needed...\nexport default wrapper(Timer) //... but here we are simply returning our new component\n```\n\n### 3. Creating reusable containers\n\nPerhaps the best feature of Wrappy is how easily it allows you to make composable container components which hold different tasks and can be applied to any component. This is a very powerful pattern, allowing you to write declarative code and potentially greatly minimizing the amount of stateful components in your codebase.\n\n```js\n//containers.js\n\nimport { componentDidMount, shouldComponentUpdate } from \'react-wrappy\'\nimport { store } from \'./stores\'\nimport * as actions from \'./actions\'\n\n/**\n * - Only re-renders component when some of the given props change\n * - If no props are given, whole newProps is used\n */\nexport const updateOnPropChange = (customProps = \'\') => {\n    const propsToCheck = customProps.split(\' \')\n    return shouldComponentUpdate((nextProps, nextState, props) =>\n        (propsToCheck || Object.keys(nextProps)).filter((prop) =>\n            nextProps[prop] !== props[prop]).length\n    )\n}\n\n/**\n * - Fetches given data from store (Redux syntax assumed in example)\n * - calls actions to populate store if data is not yet there\n */\nexport const dependencies = (dependencies) => {\n    const deps = dependencies.split(\' \')\n    return componentDidMount(() =>\n        Object.assign(...deps.map((dependency) => {\n            const state = store.getState()\n\n            if (!state[dependency]) {\n                const action = actions[`GET_${dependency.toUpperCase()}`]\n                action()\n            }\n\n            return {\n                [dependency]: state[dependency]\n            }\n        })\n}\n```\n\n```js\n//MyComponent.js\n\nimport { combine } from \'react-wrappy\'\nimport { updateOnPropChange, dependencies } from \'./containers\'\n\nconst Component = (props) => <div>{JSON.stringify(props)}</div>\n\n/**\n * Creates a component that:\n * - re-renders only when foo or bar change\n * - fetches foo, bar and baz from redux store as props to itself,\n *   if the data is not in store, corresponding actions are called to populate it\n */\nexport default combine(\n    updateOnPropChange(\'foo bar\'),\n    dependencies(\'foo bar baz\')\n)(Component)\n```\n\nAs you can see, this lets you to very neatly abstract away the nitty-gritty of creating stateful components.\n\n### 4. Multiple same lifecycle methods\n\nBecause components can be composed, it\'s important for them to work like mixins as multiple components can define same lifecycle methods. Instead of having to worry about how to compose functions so that all lifecycle methods get called, Wrappy calls all the lifecycle methods in the same way mixins do:\n\n```js\nimport { combine, componentDidMount } from \'react-wrappy\'\n\nconst Component = (props) => <div>{props.foo + props.bar}</div>\n\ncombine(\n    componentDidMount((props, state, wrapper) => ({ foo: \'foo \'})),\n    componentDidMount((props, state, wrapper) => ({ bar: \'bar \'})),\n)(Component)\n```\n\nIf you return the state instead of explicitly calling `wrapper.setState` inside the functions, the state objects are merged together and `setState` is only called once.\n\n## License\n\nMIT',
+18 silly publish   readmeFilename: 'README.md',
+18 silly publish   gitHead: '2e09fbf8142df397524d2fa3e936a3971edc1e96',
+18 silly publish   _id: 'react-wrappy@1.0.0',
+18 silly publish   _shasum: '84193a4ac7f621decb71c7083aaf21285ddf100b',
+18 silly publish   _from: '.' }
+19 verbose getPublishConfig undefined
+20 silly mapToRegistry name react-wrappy
+21 silly mapToRegistry using default registry
+22 silly mapToRegistry registry https://registry.npmjs.org/
+23 silly mapToRegistry uri https://registry.npmjs.org/react-wrappy
+24 verbose publish registryBase https://registry.npmjs.org/
+25 silly publish uploading /Users/riku.tiira/.npm/react-wrappy/1.0.0/package.tgz
+26 verbose request uri https://registry.npmjs.org/react-wrappy
+27 verbose request sending authorization for write operation
+28 info attempt registry request try #1 at 01:57:02
+29 verbose request using bearer token for auth
+30 verbose request id 73509d636a86baa2
+31 http request PUT https://registry.npmjs.org/react-wrappy
+32 http 403 https://registry.npmjs.org/react-wrappy
+33 verbose headers { 'content-type': 'application/json',
+33 verbose headers   'cache-control': 'max-age=300',
+33 verbose headers   'content-length': '95',
+33 verbose headers   'accept-ranges': 'bytes',
+33 verbose headers   date: 'Thu, 19 May 2016 22:56:57 GMT',
+33 verbose headers   via: '1.1 varnish',
+33 verbose headers   connection: 'keep-alive',
+33 verbose headers   'x-served-by': 'cache-fra1243-FRA',
+33 verbose headers   'x-cache': 'MISS',
+33 verbose headers   'x-cache-hits': '0',
+33 verbose headers   'x-timer': 'S1463698616.268087,VS0,VE1125',
+33 verbose headers   vary: 'Accept-Encoding' }
+34 verbose request invalidating /Users/riku.tiira/.npm/registry.npmjs.org/react-wrappy on PUT
+35 error publish Failed PUT 403
+36 verbose stack Error: "You cannot publish over the previously published version 1.0.0." : react-wrappy
+36 verbose stack     at makeError (/Users/riku.tiira/.nvm/versions/node/v4.3.2/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:264:12)
+36 verbose stack     at CachingRegistryClient.<anonymous> (/Users/riku.tiira/.nvm/versions/node/v4.3.2/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:252:14)
+36 verbose stack     at Request._callback (/Users/riku.tiira/.nvm/versions/node/v4.3.2/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:172:14)
+36 verbose stack     at Request.self.callback (/Users/riku.tiira/.nvm/versions/node/v4.3.2/lib/node_modules/npm/node_modules/request/request.js:198:22)
+36 verbose stack     at emitTwo (events.js:87:13)
+36 verbose stack     at Request.emit (events.js:172:7)
+36 verbose stack     at Request.<anonymous> (/Users/riku.tiira/.nvm/versions/node/v4.3.2/lib/node_modules/npm/node_modules/request/request.js:1082:10)
+36 verbose stack     at emitOne (events.js:82:20)
+36 verbose stack     at Request.emit (events.js:169:7)
+36 verbose stack     at IncomingMessage.<anonymous> (/Users/riku.tiira/.nvm/versions/node/v4.3.2/lib/node_modules/npm/node_modules/request/request.js:1009:12)
+37 verbose statusCode 403
+38 verbose pkgid react-wrappy
+39 verbose cwd /Users/riku.tiira/Projects/react-wrappy
+40 error Darwin 15.4.0
+41 error argv "/Users/riku.tiira/.nvm/versions/node/v4.3.2/bin/node" "/Users/riku.tiira/.nvm/versions/node/v4.3.2/bin/npm" "publish"
+42 error node v4.3.2
+43 error npm  v2.14.12
+44 error code E403
+45 error "You cannot publish over the previously published version 1.0.0." : react-wrappy
+46 error If you need help, you may report this error at:
+46 error     <https://github.com/npm/npm/issues>
+47 verbose exit [ 1, true ]
