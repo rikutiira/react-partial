@@ -5,6 +5,18 @@ Do you prefer writing stateless function components ([introduced with React 0.14
 Wrappy lets you write stateless components and wraps them in a stateful component by using lifted component methods in a functional manner. It enables you to reduce boilerplate, add functionality to existing components and write simpler code. Wrappy even makes it possible to write highly reusable container components by using a powerful composition pattern. More on that [here](https://github.com/rikutiira/react-wrappy#3-creating-reusable-containers).
 
 ```js
+import { componentDidMount } from 'react-wrappy'
+
+//new state can be returned instead of calling self.setState
+const didMount = (props, state, self) => ({ message: 'React Wrappy'})
+
+//state gets merged to Component's props
+const Component = (props) => <h1>{props.message}</h1>
+
+export default componentDidMount(didMount, Component)
+```
+
+```js
 import { componentDidMount, shouldComponentUpdate, combine } from 'react-wrappy'
 
 const Hello = (props) => <h1>Hello {props.world} {props.smiley}</h1>
