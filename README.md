@@ -2,7 +2,7 @@
 
 Do you prefer writing stateless function components ([introduced with React 0.14](https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html#stateless-functional-components)) over class syntax but still occasionally need lifecycle methods or state?
 
-Wrappy lets you write stateless components and wraps them in a stateful component by using lifted component methods in a functional manner. It enables you to reduce boilerplate, add functionality to existing components and write simpler code. Wrappy even makes it possible to write highly reusable container components by using a powerful composition pattern. More on that here.
+Wrappy lets you write stateless components and wraps them in a stateful component by using lifted component methods in a functional manner. It enables you to reduce boilerplate, add functionality to existing components and write simpler code. Wrappy even makes it possible to write highly reusable container components by using a powerful composition pattern. More on that [here](https://github.com/rikutiira/react-wrappy#3-creating-reusable-containers).
 
 ```js
 import { componentDidMount, shouldComponentUpdate, combine } from 'react-wrappy'
@@ -228,7 +228,7 @@ export default combine(
 
 As you can see, this lets you to very neatly abstract away the nitty-gritty of creating stateful components.
 
-### 3. Multiple same lifecycle methods
+### 4. Multiple same lifecycle methods
 
 Because components can be composed, it's important for them to work like mixins as multiple components can define same lifecycle methods. Instead of having to worry about how to compose functions so that all lifecycle methods get called, Wrappy calls all the lifecycle methods in the same way mixins do:
 
