@@ -25,7 +25,7 @@ const
     },
 
     compose = (...funcs) => (...defaultArgs) =>
-        funcs.reverse().reduce((args = [], func) => [func(...args)], defaultArgs)[0],
+        funcs.concat().reverse().reduce((args = [], func) => [func(...args)], defaultArgs)[0],
 
     pick = (hash, data = {}) => Object.assign({},
         ...Object.keys(data)
@@ -33,7 +33,9 @@ const
             .map((key) => ({ [key]: data[key] }))
     ),
 
-    merge = (...objs) => Object.assign({}, ...objs),
+    merge = (...objs) => Object.assign({}, ...Object.keys(objs)
+        .filter((key) => objs[key].constructor === Object)
+        .map((key) => objs[key])),
 
     formatComponentData = (data) => [
         pick(specs, data),
@@ -49,15 +51,22 @@ const
 
     isInternal = (f) => f && f.__functionalReact,
 
+    mergeComponentSpecs = (methods, newMethods = {}) =>
+        merge(methods, ...Object.keys(newMethods).map((key) => ({
+            [key]: methods[key]
+                ? methods[key].concat(newMethods[key])
+                : newMethods[key],
+            }))),
+
     accumulateComponent = (componentMethods = {}, componentF) => {
         if (!componentF) {
             return asInternal((componentF, newComponentMethods) =>
-                accumulateComponent(merge(componentMethods, newComponentMethods), componentF))
+                accumulateComponent(mergeComponentSpecs(componentMethods, newComponentMethods), componentF))
         }
 
         return isInternal(componentF)
             ? asInternal((newComponentF, newComponentMethods) =>
-                componentF(newComponentF, merge(componentMethods, newComponentMethods)))
+                componentF(newComponentF, mergeComponentSpecs(componentMethods, newComponentMethods)))
             : makeComponent(...formatComponentData(componentMethods), componentF)
     },
 
@@ -75,14 +84,13 @@ const
 
             statics: specs.statics,
 
-            call(f, ...args) {
-                if (f) {
-                    return f(...args, this.props, this.state, this)
-                }
+            call(funcs = [], ...args) {
+                return funcs.map((func) => func(...args, this.props, this.state, this))
             },
 
-            maybeSetState(state) {
-                if (state) {
+            maybeSetState(stateArr = []) {
+                const state = merge(...stateArr)
+                if (Object.keys(state).length) {
                     this.setState(state)
                 }
             },
@@ -113,7 +121,12 @@ const
             },
 
             shouldComponentUpdate(nextProps, nextState) {
-                return this.call(lifecycles.shouldComponentUpdate, nextProps, nextState) || true
+                const { shouldComponentUpdate } = lifecycles
+
+                return  shouldComponentUpdate
+                    ? this.call(shouldComponentUpdate, nextProps, nextState)
+                        .filter(Boolean).length
+                    : true
             },
 
             componentWillUpdate(nextProps, nextState) {
@@ -131,32 +144,38 @@ const
             render() {
                 return React.createElement(component, { ...this.props, ...this.state })
             }
-        })
+        }),
+
+    specsToArrays = (specs) =>
+        [].concat(specs).map((spec, key) => ({ [key]: [spec] })),
+
+    makeLiftedFunction = (name) => (componentMethod, f) =>
+        accumulateComponent({ [name]: [componentMethod] }, f)
 
 /**
  * Specs
  */
-export const getInitialState = (getInitialState, f) => accumulateComponent({ getInitialState }, f)
-export const getDefaultProps = (getDefaultProps, f) => accumulateComponent({ getDefaultProps }, f)
-export const propTypes = (propTypes, f) => accumulateComponent({ propTypes }, f)
-export const mixins = (mixins, f) => accumulateComponent({ mixins }, f)
-export const statics = (statics, f) => accumulateComponent({ statics }, f)
-export const displayName = (displayName, f) => accumulateComponent({ displayName }, f)
+export const getInitialState = makeLiftedFunction('getInitialState')
+export const getDefaultProps = makeLiftedFunction('getDefaultProps')
+export const propTypes = makeLiftedFunction('propTypes')
+export const mixins = makeLiftedFunction('mixins')
+export const statics = makeLiftedFunction('statics')
+export const displayName = makeLiftedFunction('displayName')
 
 /**
  * Lifecycle methods
  */
-export const componentWillMount = (componentWillMount, f) => accumulateComponent({ componentWillMount }, f)
-export const componentDidMount = (componentDidMount, f) => accumulateComponent({ componentDidMount }, f)
-export const componentWillReceiveProps = (componentWillReceiveProps, f) => accumulateComponent({ componentWillReceiveProps }, f)
-export const shouldComponentUpdate = (shouldComponentUpdate, f) => accumulateComponent({ shouldComponentUpdate }, f)
-export const componentWillUpdate = (componentWillUpdate, f) => accumulateComponent({ componentWillUpdate }, f)
-export const componentDidUpdate = (componentDidUpdate, f) => accumulateComponent({ componentDidUpdate }, f)
-export const componentWillUnmount = (componentWillUnmount, f) => accumulateComponent({ componentWillUnmount }, f)
+export const componentWillMount = makeLiftedFunction('componentWillMount')
+export const componentDidMount = makeLiftedFunction('componentDidMount')
+export const componentWillReceiveProps = makeLiftedFunction('componentWillReceiveProps')
+export const shouldComponentUpdate = makeLiftedFunction('shouldComponentUpdate')
+export const componentWillUpdate = makeLiftedFunction('componentWillUpdate')
+export const componentDidUpdate = makeLiftedFunction('componentDidUpdate')
+export const componentWillUnmount = makeLiftedFunction('componentWillUnmount')
 
 /**
  * Helpers
  */
 export const combine = (...funcs) => compose(...funcs)()
-export const addSpecs = (specs, f) => accumulateComponent(specs, f)
-export const onPropChange = (receivedProps, f) => accumulateComponent({ receivedProps }, f)
+export const addSpecs = (specs, f) => accumulateComponent(specsToArrays(specs), f)
+export const onPropChange = (receivedProps, f) => accumulateComponent(specsToArrays({ receivedProps }), f)

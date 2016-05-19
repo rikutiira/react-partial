@@ -1,55 +1,31 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { componentDidMount, componentWillMount, componentWillUnmount, componentWillReceiveProps,
-    getInitialState, propTypes, displayName, combine, addSpecs, onPropChange } from './src/index.js'
+import { componentDidMount, componentWillMount, componentWillUnmount, componentDidUpdate,
+    componentWillReceiveProps, shouldComponentUpdate, getInitialState,
+    propTypes, displayName, combine, addSpecs, onPropChange } from './src/index.js'
 
-/**
- * Dev components
- */
-const didMount = componentDidMount(
-    () => ({ didMount: true })
-)
+const updateOnPropChange = (customProps = '') => {
+    const propsToCheck = customProps.split(' ')
+    return shouldComponentUpdate((nextProps, nextState, props) => {
+        const changedProps = (propsToCheck || Object.keys(nextProps)).filter((prop) =>
+            nextProps[prop] !== props[prop]).length
 
-const willMount = componentWillMount(
-    () => ({ willMount: true })
-)
+        return changedProps
+    })
+}
 
-const willUmount = componentWillUnmount(
-    () => console.log('unmounted')
-)
+const StatelessComponent = (props) => <div>{JSON.stringify(props)}</div>
+const Hello = (props) => <h1>Hello {props.world} {props.smiley} {props.test}</h1>
 
-const willReceiveProps = componentWillReceiveProps(
-    (nextProps, props, state) => ({ xxx: 'yyy' })
-)
-
-const propChange = onPropChange({
-    received: (nextProps, props, state) => ({ received: nextProps.received * 2, time: +new Date() })
-})
-
-const didAndWillMount = componentDidMount(
-    () => ({ didMount: true }),
-    componentWillMount(
-        () => ({ willMount: true }),
-        componentWillUnmount(
-            () => console.log('unmounted'),
-            getInitialState(
-                () => ({ test: 'testing initial state' }),
-                propTypes(
-                    { bar: React.PropTypes.string },
-                    displayName(
-                        'TestComponent1'
-                    )
-                )
-            )
-        )
-    )
-)
-
-const StatelessComponent = (props) => <p>{JSON.stringify(props)}</p>
-
-const Component1 = didAndWillMount(StatelessComponent)
-const Component2 = didMount(willMount(willReceiveProps))(StatelessComponent)
-const Component3 = combine(didMount, willMount, willReceiveProps, willUmount, propChange)(StatelessComponent)
+const Component1 = combine(updateOnPropChange('foo'))(StatelessComponent)
+const Component2 = combine(
+    componentDidMount((props, state, self) => {
+        setTimeout(() => self.setState({ smiley: ':(' }), 1000)
+        setTimeout(() => self.setState({ smiley: ':)' }), 2000)
+    }),
+    shouldComponentUpdate((props, state) => console.log(state) || state.smiley === ':)'),
+    componentDidMount((props, state, self) => ({ test: 'test' }))
+)(Hello)
 
 /**
  * Append div to document and render the dev app
@@ -65,17 +41,15 @@ const Wrapper = React.createClass({
     },
 
     componentDidMount() {
-        setTimeout(() => this.setState({ received: this.state.received + 1 }), 1000)
-        setTimeout(() => this.setState({ received: this.state.received }), 2000)
-        setTimeout(() => this.setState({ received: this.state.received }), 3000)
+        setTimeout(() => this.setState({ received: this.state.received + 1, foo: 'foo' }), 1000)
+        setTimeout(() => this.setState({ received: this.state.received + 1 }), 2000)
+        setTimeout(() => this.setState({ received: this.state.received + 1, foo: 'bar' }), 3000)
     },
 
     render() {
         return (
             <div>
-                { true && <Component1 bar="bar" received={this.state.received} /> }
-                { true && <Component2 foobar="fbavgd" received={this.state.received} /> }
-                { true && <Component3 bazaar="bazaar" received={this.state.received} /> }
+                <Component2 world="world" />
             </div>
         )
     }
