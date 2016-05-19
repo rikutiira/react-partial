@@ -51,11 +51,11 @@ componentDidMount(didMountF, [Component/componentMethod])
 
 - The first argument is always the value which React expects, eg. propTypes takes an object, componentDidMount takes a function.
     - All functions get appended with 3 arguments: `props, state, this`:<br>
-    `componentDidMount((props, state, this) => ...)`<br>
-    `shouldComponentUpdate((nextProps, nextState, props, state, this) => ...)`
+    `componentDidMount((props, state, self) => ...)`<br>
+    `shouldComponentUpdate((nextProps, nextState, props, state, self) => ...)`
     - If `setState` is callable within the method, you can return an object instead of having to call `setState` yourself. This has many benefits as it allows Wrappy to optimize the amount of setState calls and your functions can often remain pure.
 - Second argument is optional, and when omitted a new curried function is returned which takes a single argument `Component/componentMethod`<br>
-    - If Component is given, a React component is returned.<br>
+    - If Component is given, a new React component is returned. The returned component wraps the given component and applies all the specified component methods.<br>
     - If componentMethod is given, its functionality is added to the existing method(s) and a new curried function is returned which takes a single argument `Component/componentMethod`
 
 ### Utility functions
