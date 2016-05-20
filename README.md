@@ -1,15 +1,15 @@
-# React Wrappy
+# React Partial
 
 Do you prefer writing stateless function components ([introduced with React 0.14](https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html#stateless-functional-components)) over class syntax but still occasionally need lifecycle methods or state?
 
-Wrappy lets you keep writing stateless components by giving you lifted component methods which can be used to create partial components with a plethora of different uses. These partial components can be used to wrap your existing components, giving them with new functionality in a declarative, functional manner.
+React Partial lets you keep writing stateless components by giving you lifted component methods which can be used to create partial components with a plethora of different uses. These partial components can be used to wrap your existing components, giving them with new functionality in a declarative, functional manner.
 
-It enables you to reduce boilerplate, add functionality to existing components and write simpler code. Wrappy even makes it possible to write highly reusable container components by using a powerful composition pattern. More on that [here](https://github.com/rikutiira/react-wrappy#3-creating-reusable-containers).
+It enables you to reduce boilerplate, add functionality to existing components and write simpler code. React Partial even makes it possible to write highly reusable higher order components by using a powerful composition pattern. More on that [here](https://github.com/rikutiira/react-partial#3-creating-reusable-containers).
 
 ```js
-import { componentDidMount } from 'react-wrappy'
+import { componentDidMount } from 'react-partial'
 
-const didMount = (self, props, state) => self.setState({ message: 'React Wrappy'})
+const didMount = (self, props, state) => self.setState({ message: 'React Partial'})
 
 //state gets merged to stateless component's props
 const Component = (props) => <h1>{props.message}</h1>
@@ -18,7 +18,7 @@ export default componentDidMount(didMount, Component)
 ```
 
 ```js
-import { componentDidMount, shouldComponentUpdate, combine } from 'react-wrappy'
+import { componentDidMount, shouldComponentUpdate, combine } from 'react-partial'
 
 const Hello = (props) => <h1>Hello {props.world} {props.smiley}</h1>
 
@@ -36,9 +36,9 @@ export default combine(
 
 npm:
 
-`npm install react-wrappy`
+`npm install react-partial`
 
-## Why use React Wrappy?
+## Why use React Partial?
 
 - Lightweight, just around ~10KB
 - Allows you to stick to stateless function syntax
@@ -48,7 +48,7 @@ npm:
 
 ## Supported methods
 
-Wrappy supports all the specifications of React.createClass():
+React Partial supports all the specifications of React.createClass():
 
 Specs: `getInitialState, getDefaultProps, propTypes, mixins, statics, displayName`
 
@@ -56,10 +56,10 @@ Lifecycle methods: `componentWillMount, componentDidMount, componentWillReceiveP
 
 ### How component methods work
 
-Every component method in React Wrappy follows the same pattern:
+Every component method in React Partial follows the same pattern:
 
 ```js
-import { propTypes, componentDidMount } from 'react-wrappy'
+import { propTypes, componentDidMount } from 'react-partial'
 
 propTypes(propTypesObj, [Component/componentMethod])
 componentDidMount(didMountF, [Component/componentMethod])
@@ -125,7 +125,7 @@ addSpecs({
 
 ### 1. Simple composition
 ```js
-import { componentDidMount, componentWillUnmount } from 'react-wrappy'
+import { componentDidMount, componentWillUnmount } from 'react-partial'
 
 const HelloWorld = (props) => <div>Hello {props.world}</div>
 
@@ -154,7 +154,7 @@ hello(
 
 ### 2. Combining multiple lifecycle methods
 ```js
-import { getInitialState, componentDidMount, componentWillUnmount, combine } from 'react-wrappy'
+import { getInitialState, componentDidMount, componentWillUnmount, combine } from 'react-partial'
 
 //combine lets you get rid of deeply nested function calls when dealing with multiple methods
 const wrapper = combine(
@@ -174,12 +174,12 @@ export default wrapper(Timer)
 
 ### 3. Creating reusable containers
 
-Perhaps the best feature of Wrappy is how easily it allows you to make composable higher order components which hold different logic and can be applied to any component. This is a very powerful pattern, allowing you to write declarative code and potentially greatly minimizing the amount of stateful components in your codebase.
+Perhaps the best feature of React Partial is how easily it allows you to make composable higher order components which hold different logic and can be applied to any component. This is a very powerful pattern, allowing you to write declarative code and potentially greatly minimizing the amount of stateful components in your codebase.
 
 ```js
 //containers.js
 
-import { componentDidMount, shouldComponentUpdate } from 'react-wrappy'
+import { componentDidMount, shouldComponentUpdate } from 'react-partial'
 import { store } from './stores'
 import * as actions from './actions'
 
@@ -221,7 +221,7 @@ export const dependencies = (dependencies) => {
 ```js
 //MyComponent.js
 
-import { combine } from 'react-wrappy'
+import { combine } from 'react-partial'
 import { updateOnPropChange, dependencies } from './containers'
 
 const Component = (props) => <div>{JSON.stringify(props)}</div>
@@ -242,10 +242,10 @@ As you can see, this neatly lets you abstract away the nitty-gritty of creating 
 
 ### 4. Multiple same lifecycle methods
 
-Because components can be composed, it's important for them to work like mixins as multiple components can define same lifecycle methods. Instead of having to worry about how to compose functions so that all lifecycle methods get called, Wrappy calls all the lifecycle methods in the same way mixins do:
+Because components can be composed, it's important for them to work like mixins as multiple components can define same lifecycle methods. Instead of having to worry about how to compose functions so that all lifecycle methods get called, React Partial calls all the lifecycle methods in the same way mixins do:
 
 ```js
-import { combine, componentDidMount } from 'react-wrappy'
+import { combine, componentDidMount } from 'react-partial'
 
 const Component = (props) => <div>{props.foo + props.bar}</div>
 
