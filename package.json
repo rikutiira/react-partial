@@ -1,6 +1,6 @@
 {
   "name": "react-wrappy",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Do you prefer to write stateless functional components over class syntax but still need state occasionally? Wrappy gives you lifted component methods to create stateful components in a declarative, functional manner.",
   "main": "./lib/index.js",
   "scripts": {
@@ -8,6 +8,10 @@
     "build": "babel src/index.js --out-file lib/index.js",
     "prepublish": "npm run build"
   },
+  "files": [
+    "lib",
+    "src"
+  ],
   "repository": {
     "type": "git",
     "url": "ssh://git@git.theorycraft.fi:10022/rikutiira/react-functional.git"
