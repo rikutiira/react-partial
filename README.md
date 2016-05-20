@@ -2,7 +2,7 @@
 
 Do you prefer writing stateless function components ([introduced with React 0.14](https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html#stateless-functional-components)) over class syntax but still occasionally need lifecycle methods or state?
 
-React Partial lets you keep writing stateless components by giving you lifted component methods which can be used to create partial components with a plethora of different uses. These partial components can be used to wrap your existing components, giving them with new functionality in a declarative, functional manner.
+React Partial lets you keep writing stateless components by giving you lifted component methods which can be used to create partial, higher order components. These partial components are used to wrap your existing components, giving them new functionality in a declarative, functional manner.
 
 It enables you to reduce boilerplate, add functionality to existing components and write simpler code. React Partial even makes it possible to write highly reusable higher order components by using a powerful composition pattern. More on that [here](https://github.com/rikutiira/react-partial#3-creating-reusable-containers).
 
