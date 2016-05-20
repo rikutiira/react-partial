@@ -9,10 +9,9 @@ It enables you to reduce boilerplate, add functionality to existing components a
 ```js
 import { componentDidMount } from 'react-wrappy'
 
-//new state can be returned instead of calling self.setState
-const didMount = (props, state, self) => ({ message: 'React Wrappy'})
+const didMount = (props, state, self) => self.setState({ message: 'React Wrappy'})
 
-//state gets merged to Component's props
+//state gets merged to stateless component's props
 const Component = (props) => <h1>{props.message}</h1>
 
 export default componentDidMount(didMount, Component)
