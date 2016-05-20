@@ -18,6 +18,7 @@ const StatelessComponent = (props) => <div>{JSON.stringify(props)}</div>
 const Hello = (props) => <h1>Hello {props.world} {props.smiley} {props.test} {props.received}</h1>
 
 const Component1 = combine(updateOnPropChange('foo'))(StatelessComponent)
+
 const Component2 = combine(
     componentDidMount((self, props, state) => {
         setTimeout(() => self.setState({ smiley: ':(' }), 1000)
@@ -27,11 +28,28 @@ const Component2 = combine(
     componentDidMount((self, props, state) => self.setState({ test: 'test' })),
     onPropChange({
         received: (self, props) => self.setState({ received: props.received * 2 })
-    })
+    }),
+    displayName('Component2'),
+    displayName('Test')
 )(Hello)
-const Component3 = addSpecs({
+
+const withSpecs = addSpecs({
+    displayName: 'test',
+    getInitialState: () => ({ bar: 'bar' }),
+    getDefaultProps: () => ({ baz: 'baz' }),
+    propTypes: { received: React.PropTypes.number.isRequired },
+    mixins: [{ mixinVar: true }],
+    statics: { staticMethod: () => true },
     componentWillMount: (self) => self.setState({ foo: 'foobar' })
-})(StatelessComponent)
+})
+
+const withSpecs2 = addSpecs({
+    mixins: [{ mixinVar2: true }],
+    statics: { staticMethod2: () => false },
+    componentWillMount: (self) => console.log(self),
+})
+
+const Component3 = combine(withSpecs, withSpecs2)(StatelessComponent)
 
 /**
  * Append div to document and render the dev app

@@ -70,81 +70,66 @@ const
             : makeComponent(...formatComponentData(componentMethods), componentF)
     },
 
-    makeComponent = (specs, lifecycles, helpers, component) =>
-        React.createClass({
-            displayName: specs.displayName || 'ReactFunctionalComponent',
+    callComponentMethods = (funcs = [], self, ...args) => {
+        const funcsData = funcs.map((func) =>
+            func(self, ...args))
 
-            getInitialState: specs.getInitialState,
+        return funcsData
+    },
 
-            getDefaultProps: specs.getDefaultProps,
+    makeComponent = (specs, lifecycles, helpers, component) => {
+        const
+            { displayName, getInitialState, getDefaultProps, propTypes, mixins, statics } = specs,
+            { componentWillReceiveProps = [] } = lifecycles,
+            { receivedProps = [] } = helpers
 
-            propTypes: specs.propTypes,
+        return React.createClass({
+            displayName: displayName ? displayName.join('.') : 'ReactFunctionalComponent',
 
-            mixins: specs.mixins,
-
-            statics: specs.statics,
-
-            __accumulateState: false,
-
-            __state: {},
-
-            __customSetState(state) {
-                if (this.__accumulateState) {
-                    this.__state = merge(this.__state, state)
-                } else  {
-                    const newState = merge(this.__state, state)
-
-                    if (newState && Object.keys(newState).length) {
-                        this.__setState(newState)
-                        this.__state = {}
-                    }
-                }
+            getInitialState() {
+                return getInitialState
+                    ? merge(...callComponentMethods(getInitialState))
+                    : null
             },
 
-            __call(funcs = [], ...args) {
-                this.__accumulateState = true
-
-                const funcsData = funcs.map((func) =>
-                    func(...args, this, this.props, this.state))
-
-                this.__accumulateState = false
-
-                return funcsData
+            getDefaultProps() {
+                return getDefaultProps
+                    ? merge(...callComponentMethods(getDefaultProps))
+                    : null
             },
+
+            propTypes: propTypes && merge(...propTypes),
+
+            mixins: mixins && Array.prototype.concat(...mixins),
+
+            statics: statics && merge(...specs.statics),
 
             componentWillMount() {
-                this.__setState = this.setState
-                this.setState = this.__customSetState
-
-                this.__callAndSetState = compose(this.__customSetState, this.__call)
-                this.__callAndSetState(lifecycles.componentWillMount)
+                this.__call = (funcs, ...args) => funcs && callComponentMethods(funcs, this, ...args, this.props, this.state)
+                this.__call(lifecycles.componentWillMount)
             },
 
             componentDidMount() {
-                this.__callAndSetState(lifecycles.componentDidMount)
+                this.__call(lifecycles.componentDidMount)
             },
 
             componentWillReceiveProps(nextProps) {
-                const handleReceivedProps = () => {
-                    const { receivedProps = {} } = helpers
+                const receivedPropsFuncs = Array.prototype.concat(
+                    ...receivedProps.map((props) => {
+                        return Object.keys(props)
+                            .filter((propName) => this.props[propName] !== nextProps[propName])
+                            .map((propName) => props[propName])
+                    }).concat(componentWillReceiveProps)
+                )
 
-                    return merge(
-                        ...Object.keys(receivedProps).map((prop) => {
-                            return (this.props[prop] !== nextProps[prop]) &&
-                                this.__call(receivedProps[prop], nextProps)
-                        }),
-                        this.__call(lifecycles.componentWillReceiveProps, nextProps)
-                    )
-                }
-
-                this.__customSetState(handleReceivedProps())
+                this.__call(receivedPropsFuncs, nextProps)
             },
 
             shouldComponentUpdate(nextProps, nextState) {
                 const { shouldComponentUpdate } = lifecycles
 
                 return  shouldComponentUpdate
-                    ? this.__call(shouldComponentUpdate, this, nextProps, nextState)
+                    ? this.__call(shouldComponentUpdate, nextProps, nextState)
                         .filter(Boolean).length
                     : true
             },
@@ -154,7 +139,7 @@ const
             },
 
             componentDidUpdate(prevProps, prevState) {
-                this.__callAndSetState(lifecycles.componentDidUpdate, prevProps, prevState)
+                this.__call(lifecycles.componentDidUpdate, prevProps, prevState)
             },
 
             componentWillUnmount() {
@@ -164,7 +149,8 @@ const
             render() {
                 return React.createElement(component, { ...this.props, ...this.state })
             }
-        }),
+        })
+    },
 
     specsToArrays = (specs) =>
         merge(...Object.keys(specs).map((key) => ({ [key]: [specs[key]] }))),

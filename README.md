@@ -104,8 +104,6 @@ onPropChange({
 }, Component)
 ```
 
-Notice that `setState` is actually only called once even when multiple props have changed.
-
 `componentWillReceiveProps` and `onPropChange` can be used together.
 
 ### `addSpecs(specificationsObject, [function])`
@@ -254,8 +252,6 @@ combine(
     componentDidMount((self, props, state) => self.setState({ bar: 'bar '})),
 )(Component)
 ```
-
-Even with multiple lifecycle methods, setState is actually only called once.
 
 ## License
 
