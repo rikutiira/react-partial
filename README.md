@@ -2,7 +2,9 @@
 
 Do you prefer writing stateless function components ([introduced with React 0.14](https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html#stateless-functional-components)) over class syntax but still occasionally need lifecycle methods or state?
 
-Wrappy lets you write stateless components and wraps them in a stateful component by using lifted component methods in a functional manner. It enables you to reduce boilerplate, add functionality to existing components and write simpler code. Wrappy even makes it possible to write highly reusable container components by using a powerful composition pattern. More on that [here](https://github.com/rikutiira/react-wrappy#3-creating-reusable-containers).
+Wrappy lets you keep writing stateless components by giving you lifted component methods which can be used to create partial components with a plethora of different uses. These partial components can be used to wrap your existing components, giving them with new functionality in a declarative, functional manner.
+
+It enables you to reduce boilerplate, add functionality to existing components and write simpler code. Wrappy even makes it possible to write highly reusable container components by using a powerful composition pattern. More on that [here](https://github.com/rikutiira/react-wrappy#3-creating-reusable-containers).
 
 ```js
 import { componentDidMount } from 'react-wrappy'
@@ -21,7 +23,8 @@ import { componentDidMount, shouldComponentUpdate, combine } from 'react-wrappy'
 
 const Hello = (props) => <h1>Hello {props.world} {props.smiley}</h1>
 
-combine(
+//combine functionality with ease
+export default combine(
     componentDidMount((props, state, self) => {
         setTimeout(() => self.setState({ smiley: ':(' }), 1000)
         setTimeout(() => self.setState({ smiley: ':)' }), 2000)
@@ -42,6 +45,7 @@ npm:
 - Allows you to stick to stateless function syntax
 - Simplifies code and reduces boilerplate
 - Ships with a few useful utility functions
+- Enables nice compositional patterns for creating higher order components
 
 ## Supported methods
 
@@ -56,6 +60,8 @@ Lifecycle methods: `componentWillMount, componentDidMount, componentWillReceiveP
 Every component method in React Wrappy follows the same pattern:
 
 ```js
+import { propTypes, componentDidMount } from 'react-wrappy'
+
 propTypes(propTypesObj, [Component/componentMethod])
 componentDidMount(didMountF, [Component/componentMethod])
 //etc...
@@ -175,7 +181,7 @@ export default wrapper(Timer) //... but here we are simply returning our new com
 
 ### 3. Creating reusable containers
 
-Perhaps the best feature of Wrappy is how easily it allows you to make composable container components which hold different tasks and can be applied to any component. This is a very powerful pattern, allowing you to write declarative code and potentially greatly minimizing the amount of stateful components in your codebase.
+Perhaps the best feature of Wrappy is how easily it allows you to make composable higher order components which hold different logic and can be applied to any component. This is a very powerful pattern, allowing you to write declarative code and potentially greatly minimizing the amount of stateful components in your codebase.
 
 ```js
 //containers.js
@@ -238,7 +244,7 @@ export default combine(
 )(Component)
 ```
 
-As you can see, this lets you to very neatly abstract away the nitty-gritty of creating stateful components.
+As you can see, this neatly lets you abstract away the nitty-gritty of creating stateful components.
 
 ### 4. Multiple same lifecycle methods
 

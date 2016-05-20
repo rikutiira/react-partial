@@ -1,7 +1,7 @@
 {
   "name": "react-wrappy",
-  "version": "1.0.4",
-  "description": "",
+  "version": "1.0.5",
+  "description": "Do you prefer to write stateless functional components over class syntax but still need state occasionally? Wrappy gives you lifted component methods to create stateful components in a declarative, functional manner.",
   "main": "./dist/index.js",
   "scripts": {
     "start": "budo dev.js --live -- -t [ babelify --presets [es2015 react stage-2] ]",
