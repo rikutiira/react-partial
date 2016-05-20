@@ -84,24 +84,44 @@ const
 
             statics: specs.statics,
 
-            call(funcs = [], ...args) {
-                return funcs.map((func) => func(...args, this.props, this.state, this))
-            },
+            __accumulateState: false,
 
-            maybeSetState(stateArr = []) {
-                const state = merge(...stateArr)
-                if (Object.keys(state).length) {
-                    this.setState(state)
+            __state: {},
+
+            __customSetState(state) {
+                if (this.__accumulateState) {
+                    this.__state = merge(this.__state, state)
+                } else  {
+                    const newState = merge(this.__state, state)
+
+                    if (newState && Object.keys(newState).length) {
+                        this.__setState(newState)
+                        this.__state = {}
+                    }
                 }
             },
 
+            __call(funcs = [], ...args) {
+                this.__accumulateState = true
+
+                const funcsData = funcs.map((func) =>
+                    func(...args, this, this.props, this.state))
+
+                this.__accumulateState = false
+
+                return funcsData
+            },
+
             componentWillMount() {
-                this.callAndSetState = compose(this.maybeSetState, this.call)
-                this.callAndSetState(lifecycles.componentWillMount)
+                this.__setState = this.setState
+                this.setState = this.__customSetState
+
+                this.__callAndSetState = compose(this.__customSetState, this.__call)
+                this.__callAndSetState(lifecycles.componentWillMount)
             },
 
             componentDidMount() {
-                this.callAndSetState(lifecycles.componentDidMount)
+                this.__callAndSetState(lifecycles.componentDidMount)
             },
 
             componentWillReceiveProps(nextProps) {
@@ -111,34 +131,34 @@ const
                     return merge(
                         ...Object.keys(receivedProps).map((prop) => {
                             return (this.props[prop] !== nextProps[prop]) &&
-                                this.call(receivedProps[prop], nextProps)
+                                this.__call(receivedProps[prop], nextProps)
                         }),
-                        this.call(lifecycles.componentWillReceiveProps, nextProps)
+                        this.__call(lifecycles.componentWillReceiveProps, nextProps)
                     )
                 }
 
-                this.maybeSetState(handleReceivedProps())
+                this.__customSetState(handleReceivedProps())
             },
 
             shouldComponentUpdate(nextProps, nextState) {
                 const { shouldComponentUpdate } = lifecycles
 
                 return  shouldComponentUpdate
-                    ? this.call(shouldComponentUpdate, nextProps, nextState)
+                    ? this.__call(shouldComponentUpdate, this, nextProps, nextState)
                         .filter(Boolean).length
                     : true
             },
 
             componentWillUpdate(nextProps, nextState) {
-                this.call(lifecycles.componentWillUpdate, nextProps, nextState)
+                this.__call(lifecycles.componentWillUpdate, nextProps, nextState)
             },
 
             componentDidUpdate(prevProps, prevState) {
-                this.callAndSetState(lifecycles.componentDidUpdate, prevProps, prevState)
+                this.__callAndSetState(lifecycles.componentDidUpdate, prevProps, prevState)
             },
 
             componentWillUnmount() {
-                this.call(lifecycles.componentWillUnmount)
+                this.__call(lifecycles.componentWillUnmount)
             },
 
             render() {

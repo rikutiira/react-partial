@@ -9,7 +9,7 @@ It enables you to reduce boilerplate, add functionality to existing components a
 ```js
 import { componentDidMount } from 'react-wrappy'
 
-const didMount = (props, state, self) => self.setState({ message: 'React Wrappy'})
+const didMount = (self, props, state) => self.setState({ message: 'React Wrappy'})
 
 //state gets merged to stateless component's props
 const Component = (props) => <h1>{props.message}</h1>
@@ -24,11 +24,11 @@ const Hello = (props) => <h1>Hello {props.world} {props.smiley}</h1>
 
 //combine functionality with ease
 export default combine(
-    componentDidMount((props, state, self) => {
+    componentDidMount((self, props, state) => {
         setTimeout(() => self.setState({ smiley: ':(' }), 1000)
         setTimeout(() => self.setState({ smiley: ':)' }), 2000)
     }),
-    shouldComponentUpdate((props, state) => state.smiley === ':)')
+    shouldComponentUpdate((self, props, state) => state.smiley === ':)')
 )(Hello)
 ```
 
@@ -67,10 +67,10 @@ componentDidMount(didMountF, [Component/componentMethod])
 ```
 
 - The first argument is always the value which React expects, eg. propTypes takes an object, componentDidMount takes a function.
-    - All functions get appended with 3 arguments: `props, state, this`:<br>
-    `componentDidMount((props, state, self) => ...)`<br>
-    `shouldComponentUpdate((nextProps, nextState, props, state, self) => ...)`
-    - If `setState` is callable within the method, you can return an object instead of having to call `setState` yourself. This has many benefits as it allows Wrappy to optimize the amount of setState calls and your functions can often remain pure.
+    - All functions get prepended with `this` and appended with `this.props, this.state`:<br>
+    `componentDidMount((self, props, state) => ...)`<br>
+    `shouldComponentUpdate((self, nextProps, nextState, props, state) => ...)`
+    - The reasoning for the order is that `this` is often necessary while `props` and `state` are just there for convenience, eg. if you want to destructure arguments.
 - Second argument is optional, and when omitted a new curried function is returned which takes a single argument `Component/componentMethod`<br>
     - If Component is given, a new React component is returned. The returned component wraps the given component and applies all the specified component methods.<br>
     - If componentMethod is given, its functionality is added to the existing method(s) and a new curried function is returned which takes a single argument `Component/componentMethod`
@@ -99,16 +99,12 @@ Returns a function following the same composition pattern as component methods.
 
 ```js
 onPropChange({
-    foo: (props, state, wrapper) => {
-        return { fooDoubled: props.foo * 2 }
-    },
-    bar: (props, state, wrapper) => {
-        return { bar: state.bar.concat(props.bar) }
-    }
+    foo: (self, nextProps) => self.setState({ fooDoubled: nextProps.foo * 2 }),
+    bar: (self, nextProps) => self.setState({ bar: self.state.bar.concat(props.bar) })
 }, Component)
 ```
 
-Notice that if you return the new state instead of explicitly using `wrapper.setState`, `setState` is only called once even when multiple props have changed.
+Notice that `setState` is actually only called once even when multiple props have changed.
 
 `componentWillReceiveProps` and `onPropChange` can be used together.
 
@@ -134,7 +130,7 @@ import { componentDidMount, componentWillUnmount } from 'react-wrappy'
 const HelloWorld = (props) => <div>Hello {props.world}</div>
 
 //second argument is omitted and partial function is returned
-const hello = componentDidMount(() => ({ world: 'world' }))
+const hello = componentDidMount((self) => self.setState({ world: 'world' }))
 const goodbye = componentWillUnmount(() => alert('goodbye world'))
 
 //this allows you to add more functionality to an already existing wrapper
@@ -148,7 +144,7 @@ You can also write the above with more inline aesthetic:
 
 ```js
 hello(
-    () => ({ world: 'world' }),
+    (self) => self.setState({ world: 'world' }),
     goodbye(
         () => alert('goodbye world'),
         HelloWorld
@@ -163,19 +159,17 @@ import { getInitialState, componentDidMount, componentWillUnmount, combine } fro
 //combine lets you get rid of deeply nested function calls when dealing with multiple methods
 const wrapper = combine(
     getInitialState((props) => ({ timer: props.timer || 0 })),
-    componentDidMount((props, state, wrapper) => { //props, state and this are always passed as last 3 arguments
-        wrapper.interval = setInterval(() => {
-            wrapper.setState({ timer: state.timer + 1 })
+    componentDidMount((self, props, state) => {
+        self.interval = setInterval(() => {
+            self.setState({ timer: state.timer + 1 })
         }, 1000)
     }),
-    componentWillUnmount((props, state, wrapper) => clearInterval(wrapper.interval)),
+    componentWillUnmount((self, props, state) => clearInterval(self.interval)),
 );
 
-//parent state is assigned to wrapped component's props
 const Timer = (props) => <div>{props.timer}</div>
 
-//every method of Wrappy is curried, allowing you to add more lifecycle methods later on if needed...
-export default wrapper(Timer) //... but here we are simply returning our new component
+export default wrapper(Timer)
 ```
 
 ### 3. Creating reusable containers
@@ -195,7 +189,7 @@ import * as actions from './actions'
  */
 export const updateOnPropChange = (customProps = '') => {
     const propsToCheck = customProps.split(' ')
-    return shouldComponentUpdate((nextProps, nextState, props) =>
+    return shouldComponentUpdate((self, nextProps, nextState, props, state) =>
         (propsToCheck || Object.keys(nextProps)).filter((prop) =>
             nextProps[prop] !== props[prop]).length
     )
@@ -207,19 +201,20 @@ export const updateOnPropChange = (customProps = '') => {
  */
 export const dependencies = (dependencies) => {
     const deps = dependencies.split(' ')
-    return componentDidMount(() =>
-        Object.assign(...deps.map((dependency) => {
-            const state = store.getState()
+    return componentDidMount((self) =>
+        self.setState(
+            Object.assign(...deps.map((dependency) => {
+                const state = store.getState()
 
-            if (!state[dependency]) {
-                const action = actions[`GET_${dependency.toUpperCase()}`]
-                action()
-            }
+                if (!state[dependency]) {
+                    const action = actions[`GET_${dependency.toUpperCase()}`]
+                    action()
+                }
 
-            return {
-                [dependency]: state[dependency]
-            }
-        })
+                return {
+                    [dependency]: state[dependency]
+                }
+            }))))
 }
 ```
 
@@ -255,12 +250,12 @@ import { combine, componentDidMount } from 'react-wrappy'
 const Component = (props) => <div>{props.foo + props.bar}</div>
 
 combine(
-    componentDidMount((props, state, wrapper) => ({ foo: 'foo '})),
-    componentDidMount((props, state, wrapper) => ({ bar: 'bar '})),
+    componentDidMount((self, props, state) => self.setState({ foo: 'foo '})),
+    componentDidMount((self, props, state) => self.setState({ bar: 'bar '})),
 )(Component)
 ```
 
-If you return the state instead of explicitly calling `wrapper.setState` inside the functions, the state objects are merged together and `setState` is only called once.
+Even with multiple lifecycle methods, setState is actually only called once.
 
 ## License
 

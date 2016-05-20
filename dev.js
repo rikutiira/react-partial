@@ -19,18 +19,18 @@ const Hello = (props) => <h1>Hello {props.world} {props.smiley} {props.test} {pr
 
 const Component1 = combine(updateOnPropChange('foo'))(StatelessComponent)
 const Component2 = combine(
-    componentDidMount((props, state, self) => {
+    componentDidMount((self, props, state) => {
         setTimeout(() => self.setState({ smiley: ':(' }), 1000)
         setTimeout(() => self.setState({ smiley: ':)' }), 2000)
     }),
-    shouldComponentUpdate((props, state) => state.smiley === ':)'),
-    componentDidMount((props, state, self) => ({ test: 'test' })),
+    shouldComponentUpdate((self, nextProps, nextState) => nextState.smiley === ':)'),
+    componentDidMount((self, props, state) => self.setState({ test: 'test' })),
     onPropChange({
-        received: (props) => ({ received: props.received * 2 })
+        received: (self, props) => self.setState({ received: props.received * 2 })
     })
 )(Hello)
 const Component3 = addSpecs({
-    componentWillMount: () => ({ foo: 'foobar' })
+    componentWillMount: (self) => self.setState({ foo: 'foobar' })
 })(StatelessComponent)
 
 /**
