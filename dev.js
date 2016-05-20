@@ -15,7 +15,7 @@ const updateOnPropChange = (customProps = '') => {
 }
 
 const StatelessComponent = (props) => <div>{JSON.stringify(props)}</div>
-const Hello = (props) => <h1>Hello {props.world} {props.smiley} {props.test}</h1>
+const Hello = (props) => <h1>Hello {props.world} {props.smiley} {props.test} {props.received}</h1>
 
 const Component1 = combine(updateOnPropChange('foo'))(StatelessComponent)
 const Component2 = combine(
@@ -23,9 +23,15 @@ const Component2 = combine(
         setTimeout(() => self.setState({ smiley: ':(' }), 1000)
         setTimeout(() => self.setState({ smiley: ':)' }), 2000)
     }),
-    shouldComponentUpdate((props, state) => console.log(state) || state.smiley === ':)'),
-    componentDidMount((props, state, self) => ({ test: 'test' }))
+    shouldComponentUpdate((props, state) => state.smiley === ':)'),
+    componentDidMount((props, state, self) => ({ test: 'test' })),
+    onPropChange({
+        received: (props) => ({ received: props.received * 2 })
+    })
 )(Hello)
+const Component3 = addSpecs({
+    componentWillMount: () => ({ foo: 'foobar' })
+})(StatelessComponent)
 
 /**
  * Append div to document and render the dev app
@@ -49,7 +55,8 @@ const Wrapper = React.createClass({
     render() {
         return (
             <div>
-                <Component2 world="world" />
+                <Component2 world="world" received={this.state.received} />
+                <Component3 received={this.state.received} />
             </div>
         )
     }

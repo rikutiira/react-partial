@@ -34,7 +34,7 @@ const
     ),
 
     merge = (...objs) => Object.assign({}, ...Object.keys(objs)
-        .filter((key) => objs[key].constructor === Object)
+        .filter((key) => objs[key] && objs[key].constructor === Object)
         .map((key) => objs[key])),
 
     formatComponentData = (data) => [
@@ -111,7 +111,7 @@ const
                     return merge(
                         ...Object.keys(receivedProps).map((prop) => {
                             return (this.props[prop] !== nextProps[prop]) &&
-                                this.callLifecycle(receivedProps[prop], nextProps)
+                                this.call(receivedProps[prop], nextProps)
                         }),
                         this.call(lifecycles.componentWillReceiveProps, nextProps)
                     )
@@ -147,7 +147,7 @@ const
         }),
 
     specsToArrays = (specs) =>
-        [].concat(specs).map((spec, key) => ({ [key]: [spec] })),
+        merge(...Object.keys(specs).map((key) => ({ [key]: [specs[key]] }))),
 
     makeLiftedFunction = (name) => (componentMethod, f) =>
         accumulateComponent({ [name]: [componentMethod] }, f)
