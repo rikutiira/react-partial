@@ -1,28 +1,11 @@
 import React from 'react'
 
 const
-    specs = {
-        getInitialState: true,
-        getDefaultProps: true,
-        propTypes: true,
-        mixins: true,
-        statics: true,
-        displayName: true
-    },
+    merge = (...objs) => Object.assign({}, ...Object.keys(objs)
+        .filter((key) => objs[key] && objs[key].constructor === Object)
+        .map((key) => objs[key])),
 
-    lifecycles = {
-        componentWillMount: true,
-        componentDidMount: true,
-        componentWillReceiveProps: true,
-        shouldComponentUpdate: true,
-        componentWillUpdate: true,
-        componentDidUpdate: true,
-        componentWillUnmount: true
-    },
-
-    helpers = {
-        receivedProps: true
-    },
+    keyMirror = (str) => merge(...str.split(' ').map((it) => ({ [it]: it }))),
 
     compose = (...funcs) => (...defaultArgs) =>
         funcs.concat().reverse().reduce((args = [], func) => [func(...args)], defaultArgs)[0],
@@ -33,9 +16,9 @@ const
             .map((key) => ({ [key]: data[key] }))
     ),
 
-    merge = (...objs) => Object.assign({}, ...Object.keys(objs)
-        .filter((key) => objs[key] && objs[key].constructor === Object)
-        .map((key) => objs[key])),
+    specs = keyMirror('getInitialState getDefaultProps propTypes mixins statics displayName'),
+    lifecycles = keyMirror('componentWillMount componentDidMount componentWillReceiveProps shouldComponentUpdate componentWillUpdate componentDidUpdate componentWillUnmount'),
+    helpers = keyMirror('receivedProps'),
 
     formatComponentData = (data) => [
         pick(specs, data),

@@ -51,6 +51,15 @@ const withSpecs2 = addSpecs({
 
 const Component3 = combine(withSpecs, withSpecs2)(StatelessComponent)
 
+const Component4 = componentDidMount(
+    (self) => self.setState({ foo: 'foo' }),
+    componentDidMount(
+        (self) => self.setState({ bar: 'bar' })
+    )
+)(StatelessComponent)
+
+//const Component5 = componentDidMount((self) => self.setState({ bar: 'bar' }), Component4)
+
 /**
  * Append div to document and render the dev app
  */
@@ -75,6 +84,8 @@ const Wrapper = React.createClass({
             <div>
                 <Component2 world="world" received={this.state.received} />
                 <Component3 received={this.state.received} />
+                <br /><br /><br />
+                <Component4 />
             </div>
         )
     }

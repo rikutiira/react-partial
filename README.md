@@ -143,11 +143,8 @@ You can also write the above with more inline aesthetic:
 ```js
 hello(
     (self) => self.setState({ world: 'world' }),
-    goodbye(
-        () => alert('goodbye world'),
-        HelloWorld
-    )
-)
+    goodbye(() => alert('goodbye world'))
+)(HelloWorld)
 ```
 
 ### 2. Combining multiple lifecycle methods
@@ -173,6 +170,26 @@ export default wrapper(Timer)
 ### 3. Creating reusable containers
 
 Perhaps the best feature of React Partial is how easily it allows you to make composable higher order components which hold different logic and can be applied to any component. This is a very powerful pattern, allowing you to write declarative code and potentially greatly minimizing the amount of stateful components in your codebase.
+
+```js
+//MyComponent.js
+
+import { combine } from 'react-partial'
+import { updateOnPropChange, dependencies } from './containers'
+
+const Component = (props) => <div>{JSON.stringify(props)}</div>
+
+/**
+ * Creates a component that:
+ * - re-renders only when foo or bar change
+ * - fetches foo, bar and baz from redux store as props to itself,
+ *   if the data is not in store, corresponding actions are called to populate it
+ */
+export default combine(
+    updateOnPropChange('foo bar'),
+    dependencies('foo bar baz')
+)(Component)
+```
 
 ```js
 //containers.js
@@ -214,26 +231,6 @@ export const dependencies = (dependencies) => {
                 }
             }))))
 }
-```
-
-```js
-//MyComponent.js
-
-import { combine } from 'react-partial'
-import { updateOnPropChange, dependencies } from './containers'
-
-const Component = (props) => <div>{JSON.stringify(props)}</div>
-
-/**
- * Creates a component that:
- * - re-renders only when foo or bar change
- * - fetches foo, bar and baz from redux store as props to itself,
- *   if the data is not in store, corresponding actions are called to populate it
- */
-export default combine(
-    updateOnPropChange('foo bar'),
-    dependencies('foo bar baz')
-)(Component)
 ```
 
 As you can see, this neatly lets you abstract away the nitty-gritty of creating stateful components.
