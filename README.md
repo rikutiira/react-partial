@@ -4,7 +4,9 @@ Do you prefer writing stateless function components ([introduced with React 0.14
 
 React Partial lets you keep writing stateless components by giving you lifted component methods which can be used to create partial, higher order components. These partial components are used to wrap your existing components, giving them new functionality in a declarative, functional manner.
 
-It enables you to reduce boilerplate, add functionality to existing components and write simpler code. React Partial even makes it possible to write highly reusable higher order components by using a powerful composition pattern. More on that [here](https://github.com/rikutiira/react-partial#3-creating-reusable-containers).
+The purpose of the library is to allow you to start with stateless functions as your go-to component and wrap them with stateful components when needed. This is not only helpful if you prefer writing stateless UI components but can also help you to find reusable patterns with your stateful containers. By abstracting stateful logic in containers, it becomes easy to add functionality to existing UI components and write simpler code. More on examples of reusable containers [here](https://github.com/rikutiira/react-partial#3-creating-reusable-containers).
+
+React Partial is lightweight, just around ~10KB.
 
 ```js
 import { componentDidMount } from 'react-partial'
@@ -38,14 +40,6 @@ npm:
 
 `npm install react-partial`
 
-## Why use React Partial?
-
-- Lightweight, just around ~10KB
-- Allows you to stick to stateless function syntax
-- Simplifies code and reduces boilerplate
-- Ships with a few useful utility functions
-- Enables nice compositional patterns for creating higher order components
-
 ## Supported methods
 
 React Partial supports all the specifications of React.createClass():
@@ -66,14 +60,14 @@ componentDidMount(didMountF, [Component/componentMethod])
 //etc...
 ```
 
-- The first argument is always the value which React expects, eg. propTypes takes an object, componentDidMount takes a function.
-    - All functions get prepended with `this` and appended with `this.props, this.state`:<br>
+- **The first argument is always the value which the method expects**, eg. propTypes takes an object, componentDidMount takes a function.
+    - Each function's arguments get prepended with `this` and appended with `this.props, this.state`:<br>
     `componentDidMount((self, props, state) => ...)`<br>
     `shouldComponentUpdate((self, nextProps, nextState, props, state) => ...)`
-    - The reasoning for the order is that `this` is often necessary while `props` and `state` are just there for convenience, eg. if you want to destructure arguments.
-- Second argument is optional, and when omitted a new curried function is returned which takes a single argument `Component/componentMethod`<br>
-    - If Component is given, a new React component is returned. The returned component wraps the given component and applies all the specified component methods.<br>
+        - The reasoning for the order is that `this` is often necessary while `props` and `state` are just there for convenience, eg. if you want to destructure arguments.
+- Second argument is optional, and when omitted a new curried function is returned which takes a single argument `componentMethod/Component`
     - If componentMethod is given, its functionality is added to the existing method(s) and a new curried function is returned which takes a single argument `Component/componentMethod`
+    - If Component is given, a new React component is returned. The returned component wraps Component with a higher order component with all the given partial methods.
 
 ### Utility functions
 
@@ -81,7 +75,7 @@ componentDidMount(didMountF, [Component/componentMethod])
 
 Combines multiple component methods without having to write nested function calls.
 
-Returns a curried function.
+Returns a composable `f(componentMethod/Component)` function.
 
 ```js
 combine(
@@ -93,9 +87,11 @@ combine(
 
 #### `onPropChange(propsObject, [function])`
 
+#### NOTE: `onPropChange` has been deprecated and will be removed in the next major version. React Partial should be as simple as possible and it's easy to write these kind of composable utility functions without React Partial shipping with them.
+
 onPropChange uses `componentWillReceiveProps` lifecycle method and listens to changes in props specified by the propsObject and calls the given function when prop has changed (using `!==` equality check). This helps you to reduce boilerplate by not having to check whether prop has changed or not.
 
-Returns a function following the same composition pattern as component methods.
+Returns a composable `f(componentMethod/Component)` function.
 
 ```js
 onPropChange({
@@ -106,18 +102,22 @@ onPropChange({
 
 `componentWillReceiveProps` and `onPropChange` can be used together.
 
-### `addSpecs(specificationsObject, [function])`
+### `createClass(specificationsObject, [function])`
 
-addSpecs can be used to define component methods as an object instead of using function composition.
+createClass can be used to define component methods as an object instead of using function composition.
 
-Returns a function following the same composition pattern as component methods.
+Returns a composable `f(componentMethod/Component)` function.
 
 ```js
-addSpecs({
+createClass({
     displayName: 'MyAlertingComponent',
     componentDidMount: () => alert('woosh!')
 })(Component)
 ```
+
+### `addSpecs -> createClass`
+
+#### NOTE: addSpecs has been renamed to createClass and will be removed in the next major version.
 
 ## Examples
 
@@ -135,7 +135,7 @@ const goodbye = componentWillUnmount(() => alert('goodbye world'))
 const helloAndGoodbye = hello(goodbye)
 
 //HelloWorld is augmented with both hello's and goodbye's functionality
-export default goodbye(HelloWorld)
+export default helloAndGoodbye(HelloWorld)
 ```
 
 You can also write the above with more inline aesthetic:
@@ -169,7 +169,7 @@ export default wrapper(Timer)
 
 ### 3. Creating reusable containers
 
-Perhaps the best feature of React Partial is how easily it allows you to make composable higher order components which hold different logic and can be applied to any component. This is a very powerful pattern, allowing you to write declarative code and potentially greatly minimizing the amount of stateful components in your codebase.
+React Partial doesn't add any new functionality to React but it guides you separate pure UI components from logical components. It guides you to write composable higher order components with well defined functionality and can be then applied to any component. This is a very powerful pattern, allowing you to write declarative code and potentially greatly minimizing the amount of stateful components in your codebase.
 
 ```js
 //MyComponent.js

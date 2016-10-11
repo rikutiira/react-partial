@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { componentDidMount, componentWillMount, componentWillUnmount, componentDidUpdate,
     componentWillReceiveProps, shouldComponentUpdate, getInitialState,
-    propTypes, displayName, combine, addSpecs, onPropChange } from './src/index.js'
+    propTypes, displayName, combine, addSpecs, createClass, onPropChange } from './src/index.js'
 
 const updateOnPropChange = (customProps = '') => {
     const propsToCheck = customProps.split(' ')
@@ -43,7 +43,7 @@ const withSpecs = addSpecs({
     componentWillMount: (self) => self.setState({ foo: 'foobar' })
 })
 
-const withSpecs2 = addSpecs({
+const withSpecs2 = createClass({
     mixins: [{ mixinVar2: true }],
     statics: { staticMethod2: () => false },
     componentWillMount: (self) => console.log(self),

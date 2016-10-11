@@ -166,5 +166,14 @@ export const componentWillUnmount = makeLiftedFunction('componentWillUnmount')
  * Helpers
  */
 export const combine = (...funcs) => compose(...funcs)()
-export const addSpecs = (specs, f) => accumulateComponent(specsToArrays(specs), f)
-export const onPropChange = (receivedProps, f) => accumulateComponent(specsToArrays({ receivedProps }), f)
+
+export const createClass = (specs, f) => accumulateComponent(specsToArrays(specs), f)
+export const addSpecs = (specs, f) => {
+    console.warn('addSpecs has been renamed to createClass and will be removed in the next major version.')
+    return createClass(specs, f)
+}
+
+export const onPropChange = (receivedProps, f) => {
+    console.warn('onPropChange has been deprecated and will be removed in the next major version.')
+    return accumulateComponent(specsToArrays({ receivedProps }), f)
+}

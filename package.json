@@ -1,6 +1,6 @@
 {
   "name": "react-partial",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Do you prefer to write stateless functional components over class syntax but still need state occasionally? React Partial gives you lifted component methods to create stateful components in a declarative, functional manner.",
   "main": "./lib/index.js",
   "scripts": {
