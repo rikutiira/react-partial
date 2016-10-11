@@ -69,9 +69,9 @@ componentDidMount(didMountF, [Component/componentMethod])
     - If componentMethod is given, its functionality is added to the existing method(s) and a new curried function is returned which takes a single argument `Component/componentMethod`
     - If Component is given, a new React component is returned. The returned component wraps Component with a higher order component with all the given partial methods.
 
-### Utility functions
+## Utility functions
 
-#### `combine(...funcs)`
+### `combine(...funcs)`
 
 Combines multiple component methods without having to write nested function calls.
 
@@ -85,7 +85,7 @@ combine(
 )(Component)
 ```
 
-#### `onPropChange(propsObject, [function])`
+### `onPropChange(propsObject, [function])`
 
 #### NOTE: `onPropChange` has been deprecated and will be removed in the next major version. React Partial should be as simple as possible and it's easy to write these kind of composable utility functions without React Partial shipping with them.
 
